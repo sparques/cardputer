@@ -73,9 +73,25 @@ const (
 	BtnDown  = BtnFn | BtnPeriod
 	BtnRight = BtnFn | BtnSlash
 	BtnLeft  = BtnFn | BtnComma
+
+	// Implement F1-F12 keys as Fn+Numbers
+	BtnF1  = BtnFn | Btn1
+	BtnF2  = BtnFn | Btn2
+	BtnF3  = BtnFn | Btn3
+	BtnF4  = BtnFn | Btn4
+	BtnF5  = BtnFn | Btn5
+	BtnF6  = BtnFn | Btn6
+	BtnF7  = BtnFn | Btn7
+	BtnF8  = BtnFn | Btn8
+	BtnF9  = BtnFn | Btn9
+	BtnF10 = BtnFn | Btn0
+	BtnF11 = BtnFn | BtnUnderscore
+	BtnF12 = BtnFn | BtnEqual
 )
 
 const (
+	// BtnSpecialMask is a bitmask for all the buttons that should not produce
+	// a character (if using (*Device).) when pressed on their own.
 	BtnSpecialMask = (BtnCtrl | BtnFn | BtnOpt | BtnShift | BtnAlt)
 )
 
@@ -204,9 +220,78 @@ var (
 		BtnShift | BtnLeft:  []byte{0x1b, '[', '1', ';', '2', 'D'}, // Left button
 		BtnShift | BtnSpace: []byte{' '},
 
-		//TODO: add Ctrl+<> combos
+		// Other Fn buttons
+		BtnEsc: []byte{'\x1b'},
+
+		// Ctrl Combos
+		// NUL Null
+		BtnCtrl | BtnShift | Btn2: []byte{0x00},
+		// SOH Start of Heading
+		BtnCtrl | BtnA: []byte{0x01},
+		// SOT Start of Text
+		BtnCtrl | BtnB: []byte{0x02},
+		// ETX End of Text (interrupt)
+		BtnCtrl | BtnC: []byte{0x03},
+		// EOT End of Transmission (EOF)
+		BtnCtrl | BtnD: []byte{0x04},
+		// ENQ Eqnuiry
+		BtnCtrl | BtnE: []byte{0x05},
+		// ACK Acknowledge
+		BtnCtrl | BtnF: []byte{0x06},
+		// BEL Bell
+		BtnCtrl | BtnG: []byte{0x07},
+		// BS Backspace
+		BtnCtrl | BtnH: []byte{0x08},
+		// HT Horizontal Tab
+		BtnCtrl | BtnI: []byte{0x09},
+		// LF Line Feed
+		BtnCtrl | BtnJ: []byte{0x0A},
+		// VT Vertical Tab
+		BtnCtrl | BtnK: []byte{0x0B},
+		// FF Form Feed
+		BtnCtrl | BtnL: []byte{0x0C},
+		// CR Carriage Feed (Carriage Return)
+		BtnCtrl | BtnM: []byte{0x0D},
+		// SO Shift Out
+		BtnCtrl | BtnN: []byte{0x0E},
+		// SI Shift In
+		BtnCtrl | BtnO: []byte{0x0F},
+		// DLE Data Line Escape
+		BtnCtrl | BtnP: []byte{0x10},
+		// DC1 Device Control 1
+		BtnCtrl | BtnQ: []byte{0x11},
+		// DC2 Device Control 2
+		BtnCtrl | BtnR: []byte{0x12},
+		// DC3 Device Control 3
+		BtnCtrl | BtnS: []byte{0x13},
+		// DC4 Device Control 4
+		BtnCtrl | BtnT: []byte{0x14},
+		// NAK Negative Acknowledge
+		BtnCtrl | BtnU: []byte{0x15},
+		// SYN Synchronous Idle
+		BtnCtrl | BtnV: []byte{0x16},
+		// ETB End of Transmission Block
+		BtnCtrl | BtnW: []byte{0x17},
+		// CAN Cancel
+		BtnCtrl | BtnX: []byte{0x18},
+		// EM End of Medium
+		BtnCtrl | BtnY: []byte{0x19},
+		// SUB Substitute
+		BtnCtrl | BtnZ: []byte{0x1A},
+		// ESC Escape
+		BtnCtrl | BtnBraceLeft: []byte{0x1B},
+		// FS File Separator
+		BtnCtrl | BtnBackslash: []byte{0x1C},
+		// GS Group Separator
+		BtnCtrl | BtnBraceRight: []byte{0x1D},
+		// RS Record Separator
+		BtnCtrl | BtnShift | Btn6: []byte{0x1E},
+		// US Unit Separator
+		BtnCtrl | BtnUnderscore: []byte{0x1F},
 
 		//TODO: add Alt+<> combos
-
+		// Seems like this just sends ESC + button pressed
+		// Do this programmatically? Mask off Alt bit and send keys
+		// pressed prefixed with ESC?
 	}
 )

@@ -10,11 +10,22 @@ import (
 	"time"
 )
 
+var (
+	// The fatest typist in the word can type (on a full sized, QWERTY Keyboard) just under
+	// 1000 characters per minute. That's about 16.67 Hz or a period of 60 ms.
+	// So a DefaultScanPeriod of 20 ms should be plenty responsive, right?
+	// TODO: Empirical testing.
+	// 20ms scan period means two key presses can be registered in 60ms; the first 20ms
+	// are needed to detect the press, the next 20 to detect the release, and the final
+	// 20 to detect the second press.
+	DefaultScanPeriod time.Duration = 20 * time.Milisecond
+)
+
 const (
 	// DefaultAddressLines are the pins that are connected to the 74HC138
-	DefaultAddressLines = [3]machine.Pin{machine.GPIO8, machine.GPIO9, machine.GPIO11}
+	DefaultAddressLines = [3]machine.Pin{a0, a1, a2}
 	// DefaultSenseLines are the GPIO input pins connected to the keypad.
-	DefaultSenseLines = [7]machine.Pin{machine.GPIO13, machine.GPIO15, machine.GPIO3, machine.GPIO4, machine.GPIO5, machine.GPIO6, machine.GPIO7}
+	DefaultSenseLines = [7]machine.Pin{c0, c1, c2, c3, c4, c5, c6}
 )
 
 type Device struct {
@@ -68,6 +79,7 @@ func NewWithPins(addrLines [3]machine.Pin, senseLines [7]machine.Pin) *Device {
 	for i := range addrLines {
 		addrLines[i].Configure(machine.PinConfig{Mode: PinOutput})
 	}
+	// configure senseLines for input
 	for i := range senseLines {
 		senseLines[i].Configure(machine.PinConfig{Mode: PinInputPullDown})
 	}
@@ -75,6 +87,7 @@ func NewWithPins(addrLines [3]machine.Pin, senseLines [7]machine.Pin) *Device {
 		addressLines: addrLines,
 		senseLines:   senseLines,
 		scanPeriod:   20 * time.Microsecond,
+		Receiver:     io.Discard,
 	}
 
 	// by default, use our own callback that writes bytes to (*Device).Receiver
@@ -100,6 +113,7 @@ func (d *Device) Start() {
 		// yes, there's a cleaner way to program this, but this is running all the time
 		// in a tight loop, we want to keep it efficient, so no for loops or a function
 		// that converts an integer into 3 calls to addressLines[x].High/Low().
+		// The for loop in scanSenseLines SHOULD get unrolled by the compiler.
 
 		ticker := time.NewTicker(d.scanPeriod)
 		for {
@@ -111,6 +125,8 @@ func (d *Device) Start() {
 			case <-ticker.C:
 				// read all the senseLines
 				// The pattern used is to minimize number of calls used to change addressLines
+				// Yes it makes the scan codes kind of random and out of order, but the pattern
+				// implemented by the hardware doesn't follow a nice in-order, row-by-row pattern anyway
 
 				d.buf = 0
 				// 110
@@ -194,17 +210,24 @@ func (d *Device) Stop() {
 // WriteByteCallback is a callback that generates bytes like an ANSI-terminal.
 // For example, Ctrl-H generates a \b (byte 0x08), and enter generates
 // a \n (byte 0x0A).
-// If you set (*Device).EventPressCallback to WriteByteCallback, Key presses will write bytes to (*Device).Receiver if it is non-nil.
+// If you set (*Device).EventPressCallback to WriteByteCallback, Key presses will write bytes to (*Device).Receiver.
+// By default Receiver is set to io.Discard.
 func (d *Device) WriteByteCallback(int64) {
 	// we already have access to d.state, so no need to even consider the argument passed or track what was previously
-	b, ok := scancodeToBytes[d.state]
+
+	// Alt is just whatever was pressed prefixed with ESC (0x1B). So mask off Alt here.
+	b, ok := scancodeToBytes[d.state&!BtnAlt]
 	// didn't get an actual byte? which is possible if some alt/ctrl/opt key combo is used
 	if !ok {
 		return
 	}
-	if d.Receiver != nil {
-		d.Reciever.Write(b)
+
+	// If alt is currently pressed, prefix our write with 0x1B.
+	if (d.state & BtnAlt) == BtnAlt {
+		b = append([]byte{0x1b}, b)
 	}
+	d.Reciever.Write(b)
+
 }
 
 // pressed, given bytes a and b, returns the ones present in b that weren't present in a.

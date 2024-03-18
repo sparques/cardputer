@@ -13,3 +13,8 @@ Much of the hardware on the cardputer already has drivers. The [display](https:/
 Some of the simple "peripherals" just need some convenience wrappers, such as sensing the battery level.
 
 I intend to use my [IR package](https://github.com/sparques/irtrx) for sending IR signals. I may add an IR receiver via the grove port for receiving signals.
+
+# Progress
+
+ - keypad driver written
+ 
