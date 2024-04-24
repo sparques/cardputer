@@ -18,12 +18,12 @@ var (
 	// 20ms scan period means two key presses can be registered in 60ms; the first 20ms
 	// are needed to detect the press, the next 20 to detect the release, and the final
 	// 20 to detect the second press.
-	DefaultScanPeriod time.Duration = 20 * time.Milisecond
+	DefaultScanPeriod time.Duration = 20 * time.Millisecond
 )
 
-const (
+var (
 	// DefaultAddressLines are the pins that are connected to the 74HC138
-	DefaultAddressLines = [3]machine.Pin{a0, a1, a2}
+	DefaultAddressLines = [3]machine.Pin{a1, a1, a2}
 	// DefaultSenseLines are the GPIO input pins connected to the keypad.
 	DefaultSenseLines = [7]machine.Pin{c0, c1, c2, c3, c4, c5, c6}
 )
@@ -77,13 +77,13 @@ func New() (d *Device) {
 func NewWithPins(addrLines [3]machine.Pin, senseLines [7]machine.Pin) *Device {
 	// configure addrLines for output
 	for i := range addrLines {
-		addrLines[i].Configure(machine.PinConfig{Mode: PinOutput})
+		addrLines[i].Configure(machine.PinConfig{Mode: machine.PinOutput})
 	}
 	// configure senseLines for input
 	for i := range senseLines {
-		senseLines[i].Configure(machine.PinConfig{Mode: PinInputPullDown})
+		senseLines[i].Configure(machine.PinConfig{Mode: machine.PinInputPulldown})
 	}
-	d = &Device{
+	d := &Device{
 		addressLines: addrLines,
 		senseLines:   senseLines,
 		scanPeriod:   20 * time.Microsecond,
@@ -172,7 +172,7 @@ func (d *Device) Start() {
 
 				scanSenseLines()
 
-				d.buf << 7
+				d.buf <<= 7
 				// 001
 				d.addressLines[2].High()
 
@@ -216,7 +216,7 @@ func (d *Device) WriteByteCallback(int64) {
 	// we already have access to d.state, so no need to even consider the argument passed or track what was previously
 
 	// Alt is just whatever was pressed prefixed with ESC (0x1B). So mask off Alt here.
-	b, ok := scancodeToBytes[d.state&!BtnAlt]
+	b, ok := ScancodeToBytes[d.state&^BtnAlt]
 	// didn't get an actual byte? which is possible if some alt/ctrl/opt key combo is used
 	if !ok {
 		return
@@ -224,20 +224,20 @@ func (d *Device) WriteByteCallback(int64) {
 
 	// If alt is currently pressed, prefix our write with 0x1B.
 	if (d.state & BtnAlt) == BtnAlt {
-		b = append([]byte{0x1b}, b)
+		b = append([]byte{0x1b}, b...)
 	}
-	d.Reciever.Write(b)
+	d.Receiver.Write(b)
 
 }
 
 // pressed, given bytes a and b, returns the ones present in b that weren't present in a.
 // Zeroes that stay zero and ones that stay one are ignored. That is, capture transitions from 0->1
-func pressed(a, b byte) byte {
+func pressed(a, b int64) int64 {
 	return b - (a & b)
 }
 
 // released returns the ones that are present in a and nolonger present in b.
 // that is for a->b it returns which bits went from 1->0.
-func released(a, b byte) byte {
+func released(a, b int64) int64 {
 	return a - (a & b)
 }

@@ -5,7 +5,7 @@ const (
 	// This allows for all possible combinations of keypresses and releases to be
 	// tracked. The base buttons are labeled with their default label, though
 	// some convnience combos exist, such as the arrow buttons.
-	BtnBacktick = iota
+	BtnBacktick = 1 << iota
 	Btn1
 	Btn2
 	Btn3
@@ -60,10 +60,9 @@ const (
 	BtnB
 	BtnN
 	BtnM
-	BtnSemicolon
+	BtnComma
 	BtnPeriod
 	BtnSlash
-	BtnComma
 	BtnSpace
 
 	// Convenience Aliases

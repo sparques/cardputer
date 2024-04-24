@@ -1,3 +1,7 @@
+[![Coverage Status](https://coveralls.io/repos/github/sparques/cardputer/badge.svg?branch=master)](https://coveralls.io/github/sparques/cardputer?branch=master)
+[![Go ReportCard](https://goreportcard.com/badge/sparques/cardputer)](https://goreportcard.com/report/sparques/cardputer)
+[![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://pkg.go.dev/github.com/sparques/cardputer)
+
 # Cardputer
 
 A TinyGo package for working with the hardware on the [M5 Cardputer](https://shop.m5stack.com/products/m5stack-cardputer-kit-w-m5stamps3).
@@ -16,5 +20,10 @@ I intend to use my [IR package](https://github.com/sparques/irtrx) for sending I
 
 # Progress
 
- - keypad driver written
- 
+ - ☑️ Pin definitions
+ - ☑️ IR LED
+ - ☑️ Keypad driver
+ - 🔄 Screen (just a thin wrapper around the existing st7789 driver)
+ - 🔄 SD Card (pins are initialized, but still working on filesystem support)
+ - ☑️ I2S  support (Using experimental PIO + piolib I2S implementation)
+ - ☑️ Battery  Level
