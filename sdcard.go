@@ -14,3 +14,8 @@ var SDCard = &sdc{
 type sdc struct {
 	sdcard.Device
 }
+
+// Init configures the built-in microSD slot and probes the inserted card.
+func (s *sdc) Init() error {
+	return s.Device.Configure()
+}

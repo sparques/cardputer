@@ -305,10 +305,5 @@ var (
 		BtnCtrl | BtnShift | Btn6: []byte{0x1E},
 		// US Unit Separator
 		BtnCtrl | BtnUnderscore: []byte{0x1F},
-
-		//TODO: add Alt+<> combos
-		// Seems like this just sends ESC + button pressed
-		// Do this programmatically? Mask off Alt bit and send keys
-		// pressed prefixed with ESC?
 	}
 )

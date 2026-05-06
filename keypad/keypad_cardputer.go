@@ -15,8 +15,7 @@ import (
 var (
 	// The fatest typist in the word can type (on a full sized, QWERTY Keyboard) just under
 	// 1000 characters per minute. That's about 16.67 Hz or a period of 60 ms.
-	// So a DefaultScanPeriod of 20 ms should be plenty responsive, right?
-	// TODO: Empirical testing.
+	// A DefaultScanPeriod of 20 ms is comfortably below that threshold.
 	// 20ms scan period means two key presses can be registered in 60ms; the first 20ms
 	// are needed to detect the press, the next 20 to detect the release, and the final
 	// 20 to detect the second press.
@@ -90,6 +89,10 @@ func NewWithPins(addrLines [3]machine.Pin, senseLines [7]machine.Pin) *Device {
 
 // Start begins the background scan loop for the keypad matrix.
 func (d *Device) Start() {
+	if d.stop != nil {
+		return
+	}
+
 	scanSenseLines := func() {
 		for i := range d.senseLines {
 			if d.senseLines[i].Get() {

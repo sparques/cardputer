@@ -1,0 +1,8 @@
+github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 h1:El6M4kTTCOh6aBiKaUGG7oYTSPP8MxqL4YI3kZKwcP4=
+github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510/go.mod h1:pupxD2MaaD3pAXIBCelhxNneeOaAeabZDe5s4K6zSpQ=
+github.com/sparques/irtrx v0.0.0-20240121153256-a7c7ff19a4af h1:GC5hSg9Xryfh0nTGevZhdBYtSCWwKE0SOdcV8o1o4PU=
+github.com/sparques/irtrx v0.0.0-20240121153256-a7c7ff19a4af/go.mod h1:LE0hOQrJUejYFLtydDS79Y/wFUOytWN0UZwDy4Rb9Ng=
+github.com/sparques/pwm v0.0.2 h1:0fhwnOWnPgXexmMowV9hgBLsdO1ZQo8Y4MEUxrl7UJE=
+github.com/sparques/pwm v0.0.2/go.mod h1:L1U5c+rpY/zJKb1SlmSRXTa9KsIhgB4KcaEQTSVzpn0=
+tinygo.org/x/drivers v0.27.0 h1:TEGk1lQvEhXxfvpEhUu+pwmCnhtldPI+hpHlO9VYixI=
+tinygo.org/x/drivers v0.27.0/go.mod h1:q/mU8G/wz821p8xXqbkBACOlmZFDHXd//DnYnCW+dDQ=

@@ -7,7 +7,9 @@ import (
 )
 
 var (
+	// KMsgWriter receives debug output when KMsgLogger is nil.
 	KMsgWriter = io.Discard
+	// KMsgLogger receives debug output when non-nil.
 	KMsgLogger *log.Logger
 )
 
