@@ -30,9 +30,9 @@ func (d *display) Init() {
 
 	// configure SPI
 	machine.SPI0.Configure(machine.SPIConfig{
-		SCK: LCDSCK,
-		SDO: LCDMOSI,
-		// TODO: Speed, mode, etc?
+		SCK:       LCDSCK,
+		SDO:       LCDMOSI,
+		Frequency: 40 * machine.MHz,
 	})
 
 	d.device = st7789.New(machine.SPI0, LCDReset, LCDRS, LCDCS, LCDBacklight)
@@ -62,7 +62,6 @@ func (d *display) Set(x, y int, c color.Color) {
 }
 
 func (d *display) ColorModel() color.Model {
-	// TODO fix
 	return color.RGBAModel
 }
 
@@ -87,7 +86,10 @@ func (d *display) At(x, y int) color.Color {
 }
 
 func (d *display) Scroll(amount int) {
-	d.scroll = (d.scroll + int16(amount)) % dispHeight // modulus may be wrong...
+	d.scroll = (d.scroll + int16(amount)) % dispHeight
+	if d.scroll < 0 {
+		d.scroll += dispHeight
+	}
 	d.device.SetScroll(d.scroll)
 	// and then clear scrolled area? Leave that to fansiterm...
 }
