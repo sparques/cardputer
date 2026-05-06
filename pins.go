@@ -5,8 +5,8 @@ package cardputer
 import "machine"
 
 const (
-	// Grove Port
-	// On Cardputer devices this is the HY2.0-4P "custom" port: yellow is GPIO2, white is GPIO1.
+	// GroveSCL and GroveSDA are the Cardputer family HY2.0-4P "custom" port pins.
+	// The same pins also double as the port's UART signals.
 	GroveSCL = machine.GPIO2
 	GroveSDA = machine.GPIO1
 	GroveRX  = machine.GPIO2
@@ -14,12 +14,12 @@ const (
 )
 
 const (
-	// Battery Voltage
+	// BatterySense is the ADC input connected to the battery divider.
 	BatterySense = machine.GPIO10
 )
 
 const (
-	// SD Card
+	// Built-in microSD slot pins.
 	SDMOSI = machine.GPIO14
 	SDMISO = machine.GPIO39
 	SDSCK  = machine.GPIO40
@@ -27,16 +27,24 @@ const (
 )
 
 const (
-	// Infrared LED
+	// IRPin drives the built-in infrared LED.
 	IRPin = machine.GPIO44
 )
 
 const (
-	// LCD / ST7789 pins
+	// Built-in ST7789 LCD pins.
 	LCDBacklight = machine.GPIO38
 	LCDReset     = machine.GPIO33
 	LCDRS        = machine.GPIO34
 	LCDMOSI      = machine.GPIO35
 	LCDSCK       = machine.GPIO36
 	LCDCS        = machine.GPIO37
+)
+
+const (
+	// Shared audio data pins present on both Cardputer variants.
+	I2SClock    = machine.GPIO43
+	SpeakerBK   = machine.GPIO41
+	SpeakerData = machine.GPIO42
+	MicData     = machine.GPIO46
 )

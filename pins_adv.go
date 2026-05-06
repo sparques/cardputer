@@ -15,21 +15,14 @@ const (
 )
 
 const (
-	// Shared I2C bus for the keypad controller, audio codec, and IMU.
+	// Cardputer-Adv shared peripheral I2C bus for the keypad controller, codec, and IMU.
 	I2CSharedSDA = machine.GPIO8
 	I2CSharedSCL = machine.GPIO9
 )
 
 const (
-	// Cardputer-Adv audio pins routed through the ES8311 codec.
-	I2SClock    = machine.GPIO43
-	SpeakerBK   = machine.GPIO41
-	SpeakerData = machine.GPIO42
-	MicData     = machine.GPIO46
-)
-
-const (
-	// Cardputer-Adv expansion connector pins.
+	// Cardputer-Adv EXT connector pins.
+	// This port exposes SPI, I2C, UART, and control signals on the expansion header.
 	ExtReset = machine.GPIO3
 	ExtInt   = machine.GPIO4
 	ExtBusy  = machine.GPIO6

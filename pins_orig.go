@@ -20,11 +20,3 @@ const (
 	KeypadA1 = machine.GPIO9
 	KeypadA2 = machine.GPIO11
 )
-
-const (
-	// Original Cardputer audio pins. I2SClock is shared by speaker and microphone.
-	I2SClock    = machine.GPIO43
-	SpeakerBK   = machine.GPIO41
-	SpeakerData = machine.GPIO42
-	MicData     = machine.GPIO46
-)
