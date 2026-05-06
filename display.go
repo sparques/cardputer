@@ -13,6 +13,8 @@ const (
 	dispHeight = 135
 )
 
+// Display provides access to the built-in ST7789 LCD.
+// Call Init before using it.
 var Display = &display{}
 
 type display struct {

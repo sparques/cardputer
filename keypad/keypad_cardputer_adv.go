@@ -11,6 +11,7 @@ import (
 )
 
 const (
+	// DefaultScanPeriod is how often the Adv keypad interrupt line is polled.
 	DefaultScanPeriod = 20 * time.Millisecond
 
 	keypadIRQ = machine.GPIO11
@@ -18,11 +19,17 @@ const (
 	keypadSCL = machine.GPIO9
 )
 
+// Device reads keyboard events from the Cardputer-Adv TCA8418 controller and tracks button state.
 type Device struct {
-	state                int64
-	scanPeriod           time.Duration
-	Receiver             io.Writer
-	EventPressCallback   func(int64)
+	// state tracks the currently pressed button bitmask.
+	state int64
+	// scanPeriod controls how often the interrupt line is sampled.
+	scanPeriod time.Duration
+	// Receiver receives translated byte output when WriteByteCallback is used.
+	Receiver io.Writer
+	// EventPressCallback is called when one or more buttons become pressed.
+	EventPressCallback func(int64)
+	// EventReleaseCallback is called when one or more buttons become released.
 	EventReleaseCallback func(int64)
 
 	stop    chan struct{}
@@ -32,6 +39,7 @@ type Device struct {
 	initErr error
 }
 
+// New constructs a Device using the Cardputer-Adv shared I2C bus and keypad IRQ pin.
 func New() *Device {
 	d := &Device{
 		scanPeriod: DefaultScanPeriod,
@@ -59,6 +67,7 @@ func New() *Device {
 	return d
 }
 
+// Start begins polling the TCA8418 interrupt line and draining queued key events.
 func (d *Device) Start() {
 	if d.stop != nil || d.initErr != nil || d.ctrl == nil {
 		return
@@ -84,12 +93,15 @@ func (d *Device) Start() {
 	}()
 }
 
+// Stop stops the background keypad polling loop if it is running.
 func (d *Device) Stop() {
 	if d.stop != nil {
 		d.stop <- struct{}{}
 	}
 }
 
+// WriteByteCallback translates the current button state into bytes using ScancodeToBytes
+// and writes them to Receiver.
 func (d *Device) WriteByteCallback(int64) {
 	b, ok := ScancodeToBytes[d.state&^BtnAlt]
 	if !ok {

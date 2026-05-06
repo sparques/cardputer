@@ -148,18 +148,21 @@ var (
 		BtnQuote:     []byte{'\''},
 		BtnEnter:     []byte{'\n'},
 		// Row 4
-		BtnZ:     []byte{'z'},
-		BtnX:     []byte{'x'},
-		BtnC:     []byte{'c'},
-		BtnV:     []byte{'v'},
-		BtnB:     []byte{'b'},
-		BtnN:     []byte{'n'},
-		BtnM:     []byte{'m'},
-		BtnUp:    []byte{0x1b, '[', 'A'},
-		BtnDown:  []byte{0x1b, '[', 'B'},
-		BtnRight: []byte{0x1b, '[', 'C'},
-		BtnLeft:  []byte{0x1b, '[', 'D'},
-		BtnSpace: []byte{' '},
+		BtnZ:      []byte{'z'},
+		BtnX:      []byte{'x'},
+		BtnC:      []byte{'c'},
+		BtnV:      []byte{'v'},
+		BtnB:      []byte{'b'},
+		BtnN:      []byte{'n'},
+		BtnM:      []byte{'m'},
+		BtnComma:  []byte{','},
+		BtnPeriod: []byte{'.'},
+		BtnSlash:  []byte{'/'},
+		BtnUp:     []byte{0x1b, '[', 'A'},
+		BtnDown:   []byte{0x1b, '[', 'B'},
+		BtnRight:  []byte{0x1b, '[', 'C'},
+		BtnLeft:   []byte{0x1b, '[', 'D'},
+		BtnSpace:  []byte{' '},
 
 		// With Shift
 		// Row 1
@@ -206,21 +209,36 @@ var (
 		BtnShift | BtnQuote:     []byte{'"'},
 		BtnShift | BtnEnter:     []byte{'\n'},
 		// Row 4
-		BtnShift | BtnZ:     []byte{'Z'},
-		BtnShift | BtnX:     []byte{'X'},
-		BtnShift | BtnC:     []byte{'C'},
-		BtnShift | BtnV:     []byte{'V'},
-		BtnShift | BtnB:     []byte{'B'},
-		BtnShift | BtnN:     []byte{'N'},
-		BtnShift | BtnM:     []byte{'M'},
-		BtnShift | BtnUp:    []byte{0x1b, '[', '1', ';', '2', 'A'}, // Up button
-		BtnShift | BtnDown:  []byte{0x1b, '[', '1', ';', '2', 'B'}, // Down button
-		BtnShift | BtnRight: []byte{0x1b, '[', '1', ';', '2', 'C'}, // Right button
-		BtnShift | BtnLeft:  []byte{0x1b, '[', '1', ';', '2', 'D'}, // Left button
-		BtnShift | BtnSpace: []byte{' '},
+		BtnShift | BtnZ:      []byte{'Z'},
+		BtnShift | BtnX:      []byte{'X'},
+		BtnShift | BtnC:      []byte{'C'},
+		BtnShift | BtnV:      []byte{'V'},
+		BtnShift | BtnB:      []byte{'B'},
+		BtnShift | BtnN:      []byte{'N'},
+		BtnShift | BtnM:      []byte{'M'},
+		BtnShift | BtnComma:  []byte{'<'},
+		BtnShift | BtnPeriod: []byte{'>'},
+		BtnShift | BtnSlash:  []byte{'?'},
+		BtnShift | BtnUp:     []byte{0x1b, '[', '1', ';', '2', 'A'}, // Up button
+		BtnShift | BtnDown:   []byte{0x1b, '[', '1', ';', '2', 'B'}, // Down button
+		BtnShift | BtnRight:  []byte{0x1b, '[', '1', ';', '2', 'C'}, // Right button
+		BtnShift | BtnLeft:   []byte{0x1b, '[', '1', ';', '2', 'D'}, // Left button
+		BtnShift | BtnSpace:  []byte{' '},
 
 		// Other Fn buttons
 		BtnEsc: []byte{'\x1b'},
+		BtnF1:  []byte{0x1b, 'O', 'P'},
+		BtnF2:  []byte{0x1b, 'O', 'Q'},
+		BtnF3:  []byte{0x1b, 'O', 'R'},
+		BtnF4:  []byte{0x1b, 'O', 'S'},
+		BtnF5:  []byte{0x1b, '[', '1', '5', '~'},
+		BtnF6:  []byte{0x1b, '[', '1', '7', '~'},
+		BtnF7:  []byte{0x1b, '[', '1', '8', '~'},
+		BtnF8:  []byte{0x1b, '[', '1', '9', '~'},
+		BtnF9:  []byte{0x1b, '[', '2', '0', '~'},
+		BtnF10: []byte{0x1b, '[', '2', '1', '~'},
+		BtnF11: []byte{0x1b, '[', '2', '3', '~'},
+		BtnF12: []byte{0x1b, '[', '2', '4', '~'},
 
 		// Ctrl Combos
 		// NUL Null

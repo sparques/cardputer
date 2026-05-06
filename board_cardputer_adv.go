@@ -4,23 +4,24 @@ package cardputer // github.com/sparques/cardputer
 
 import "machine"
 
+// Board identifies the Cardputer-Adv build.
 const Board = "cardputer-adv"
 
 const (
-	// Keyboard controller pins
+	// Cardputer-Adv keyboard controller pins.
 	KeypadIRQ = machine.GPIO11
 	KeypadSDA = machine.GPIO8
 	KeypadSCL = machine.GPIO9
 )
 
 const (
-	// Shared I2C bus for keypad controller, audio codec, and IMU.
+	// Shared I2C bus for the keypad controller, audio codec, and IMU.
 	I2CSharedSDA = machine.GPIO8
 	I2CSharedSCL = machine.GPIO9
 )
 
 const (
-	// Audio paths on the Adv route through the ES8311 codec.
+	// Cardputer-Adv audio pins routed through the ES8311 codec.
 	I2SClock    = machine.GPIO43
 	SpeakerBK   = machine.GPIO41
 	SpeakerData = machine.GPIO42
@@ -28,7 +29,7 @@ const (
 )
 
 const (
-	// Additional expansion bus on the Adv.
+	// Cardputer-Adv expansion connector pins.
 	ExtReset = machine.GPIO3
 	ExtInt   = machine.GPIO4
 	ExtBusy  = machine.GPIO6

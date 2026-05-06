@@ -4,7 +4,8 @@ import (
 	"github.com/sparques/cardputer/keypad"
 )
 
-// KP initializes the keypad. set KP.Receiver to get key-press events.
+// KP exposes the built-in keyboard driver using the board-default wiring.
+// Set KP.Receiver or callbacks as needed, then call KP.Start().
 var KP = &kp{
 	Device: keypad.New(),
 }

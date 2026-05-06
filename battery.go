@@ -2,6 +2,8 @@ package cardputer
 
 import "machine"
 
+// BatteryADC exposes the ADC channel used to sample the battery divider.
+// It is configured during package initialization.
 var BatteryADC = machine.ADC{Pin: BatterySense}
 
 func init() {
@@ -10,7 +12,7 @@ func init() {
 	BatteryADC.Configure(machine.ADCConfig{Resolution: 8, Samples: 32})
 }
 
-// BatteryLevel returns the battery level as a percent, 0 to 100.
+// BatteryLevel returns an approximate battery percentage in the range 0..100.
 func BatteryLevel() int {
 	// As I understand the docs for the cardputer, the battery voltage is passed to a voltage divider
 	// that divides voltage in half. If we expect the fully charged battery to be at 3.7 volts and our ref

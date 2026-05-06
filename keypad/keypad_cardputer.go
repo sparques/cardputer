@@ -30,6 +30,7 @@ var (
 	DefaultSenseLines = [7]machine.Pin{c0, c1, c2, c3, c4, c5, c6}
 )
 
+// Device scans the original Cardputer keypad matrix and tracks button state.
 type Device struct {
 	// addressLines the pins used to set the address on the 74HC138
 	// The indicies should match, addressLines[0] = A0 on the 74HC138 and is equivalent to G8 on the M5 StampC3
@@ -87,8 +88,7 @@ func NewWithPins(addrLines [3]machine.Pin, senseLines [7]machine.Pin) *Device {
 	return d
 }
 
-// Start enables interrupts on the sense lines and starts the background process of swapping between
-// address lines
+// Start begins the background scan loop for the keypad matrix.
 func (d *Device) Start() {
 	scanSenseLines := func() {
 		for i := range d.senseLines {
@@ -163,14 +163,15 @@ func (d *Device) Start() {
 	}()
 }
 
-// Stop() stops the goroutine scanning for keypad input if it's running.
+// Stop stops the keypad scan loop if it is running.
 func (d *Device) Stop() {
 	if d.stop != nil {
 		d.stop <- struct{}{}
 	}
 }
 
-// WriteByteCallback is a callback that generates bytes like an ANSI-terminal.
+// WriteByteCallback translates the current button state into bytes using ScancodeToBytes
+// and writes them to Receiver.
 func (d *Device) WriteByteCallback(int64) {
 	b, ok := ScancodeToBytes[d.state&^BtnAlt]
 	if !ok {
