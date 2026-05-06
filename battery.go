@@ -20,5 +20,12 @@ func BatteryLevel() int {
 	// TODO: after confirming this works, add a max() in there so we don't show MORE than 100%
 	// TODO: make this measurement linear if it isn't; that is, if the battery follows a logarthmic
 	// discharge, correct that to be linear.
-	return int(BatteryADC.Get()) * 100 / 144
+	level := int(BatteryADC.Get()) * 100 / 144
+	if level > 100 {
+		return 100
+	}
+	if level < 0 {
+		return 0
+	}
+	return level
 }

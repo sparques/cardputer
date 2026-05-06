@@ -72,7 +72,7 @@ func (d *display) Fill(r image.Rectangle, c color.Color) {
 func (d *display) Blit(img image.Image, at image.Point) {
 	// must convert img to a slice of []color.RGBA first
 
-	d.device.FillRectangleWithBuffer(int16(img.Bounds().Min.X), int16(img.Bounds().Min.Y), int16(img.Bounds().Dx()), int16(img.Bounds().Dy()), imageToRGBASlice(img))
+	d.device.FillRectangleWithBuffer(int16(at.X), int16(at.Y), int16(img.Bounds().Dx()), int16(img.Bounds().Dy()), imageToRGBASlice(img))
 
 	// would be better to make st7789.Device actually implement Blit and have it iterate over pixel data
 	// so we still get hte performance benefit of Blit operation, without the cost of memory
@@ -99,21 +99,23 @@ func colorToRGBA(c color.Color) color.RGBA {
 }
 
 func imageToRGBASlice(img image.Image) []color.RGBA {
-	out := make([]color.RGBA, img.Bounds().Dx()*img.Bounds().Dy())
-
-	stride := img.Bounds().Dx()
+	bounds := img.Bounds()
+	out := make([]color.RGBA, bounds.Dx()*bounds.Dy())
+	stride := bounds.Dx()
 	if rgbaImg, ok := img.(*image.RGBA); ok {
-		for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
-			for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
-				out[y*stride+x] = rgbaImg.RGBAAt(x-img.Bounds().Min.X, y-img.Bounds().Min.Y)
+		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+			for x := bounds.Min.X; x < bounds.Max.X; x++ {
+				dst := (y-bounds.Min.Y)*stride + (x - bounds.Min.X)
+				out[dst] = rgbaImg.RGBAAt(x, y)
 			}
 		}
 		return out
 	}
 
-	for y := img.Bounds().Min.Y; y < img.Bounds().Max.Y; y++ {
-		for x := img.Bounds().Min.X; x < img.Bounds().Max.X; x++ {
-			out[y*stride+x] = colorToRGBA(img.At(x-img.Bounds().Min.X, y-img.Bounds().Min.Y))
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			dst := (y-bounds.Min.Y)*stride + (x - bounds.Min.X)
+			out[dst] = colorToRGBA(img.At(x, y))
 		}
 	}
 

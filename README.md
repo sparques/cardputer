@@ -6,11 +6,15 @@
 
 A TinyGo package for working with the hardware on the [M5 Cardputer](https://shop.m5stack.com/products/m5stack-cardputer-kit-w-m5stamps3).
 
-This should work with the ESP32 / Stamp S3 board as well as the RP2040-based board.
+This package targets the ESP32-S3 based Cardputer family hardware.
+
+Build with `make build` for the original Cardputer, or `make build BOARD=cardputer-adv` for the Cardputer-Adv. The checked-in `Makefile` forces TinyGo 0.37 to use Go 1.24.6, because TinyGo currently rejects the system `go1.26.x` toolchain.
+
+The original Cardputer remains the default build. Cardputer-Adv support currently shares the common peripherals and board pin map, but still needs board-specific keypad and audio drivers on top of the new build-tag split.
 
 # Project Goals
 
-I want to be able to use everything the cardputer has to offer, including the i2s microphone and amplifier/speaker. The best way to do this is probably figuring out how to get PIO to work under TinyGo (it's possible, per several TinyGo issue discussions) and use the i2s PIO programs from [here](https://github.com/malacalypse/rp2040_i2s_example).
+I want to be able to use everything the cardputer has to offer, including the microphone and amplifier/speaker.
 
 Much of the hardware on the cardputer already has drivers. The [display](https://github.com/tinygo-org/drivers/tree/release/st7789) and the [SD card](https://github.com/tinygo-org/drivers/tree/release/sdcard) both already have drivers.
 
@@ -25,5 +29,5 @@ I intend to use my [IR package](https://github.com/sparques/irtrx) for sending I
  - ☑️ Keypad driver
  - 🔄 Screen (just a thin wrapper around the existing st7789 driver)
  - 🔄 SD Card (pins are initialized, but still working on filesystem support)
- - ☑️ I2S  support (Using experimental PIO + piolib I2S implementation)
+ - 🔄 Audio support
  - ☑️ Battery  Level
