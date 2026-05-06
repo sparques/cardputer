@@ -4,7 +4,8 @@ go 1.24.6
 
 require (
 	github.com/sparques/irtrx v0.0.0-20240121153256-a7c7ff19a4af
-	tinygo.org/x/drivers v0.27.0
+	tinygo.org/x/drivers v0.31.0
+	tinygo.org/x/tinyfs v0.5.0
 )
 
 require (
