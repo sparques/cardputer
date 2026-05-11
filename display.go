@@ -4,8 +4,6 @@ import (
 	"image"
 	"image/color"
 	"machine"
-
-	"tinygo.org/x/drivers/st7789"
 )
 
 const (
@@ -22,12 +20,27 @@ const (
 var Display = &display{}
 
 type display struct {
-	device st7789.Device
+	device st7789RGB565
 	bus    machine.SPI
 	scroll int16
+	pix    []RGB565
+	line   []RGB565
 }
 
+type RGB565 uint16
+
+var RGB565Model = color.ModelFunc(func(c color.Color) color.Color {
+	if c, ok := c.(RGB565); ok {
+		return c
+	}
+	return colorToRGB565(c)
+})
+
 func (d *display) Init() {
+	d.InitWithBuffer(true)
+}
+
+func (d *display) InitWithBuffer(buffered bool) {
 	// configure SPI
 	machine.SPI0.Configure(machine.SPIConfig{
 		SCK:       LCDSCK,
@@ -35,18 +48,26 @@ func (d *display) Init() {
 		Frequency: 40 * machine.MHz,
 	})
 
-	d.device = st7789.New(machine.SPI0, LCDReset, LCDRS, LCDCS, LCDBacklight)
+	d.device = newST7789RGB565(machine.SPI0, LCDReset, LCDRS, LCDCS, LCDBacklight)
 
-	d.device.Configure(st7789.Config{
+	d.device.Configure(st7789Config{
 		Width:        panelWidth,
 		Height:       panelHeight,
-		Rotation:     st7789.ROTATION_270,
+		Rotation:     st7789Rotation270,
 		RowOffset:    panelRowOffset,
 		ColumnOffset: panelColOffset,
+		Buffered:     false,
 		//FrameRate    FrameRate
 		//VSyncLines   int16
 	})
 
+	if buffered {
+		d.pix = make([]RGB565, dispWidth*dispHeight)
+		d.line = make([]RGB565, dispWidth)
+	} else {
+		d.pix = nil
+		d.line = nil
+	}
 }
 
 func (*display) Bounds() image.Rectangle {
@@ -61,12 +82,16 @@ func (d *display) Set(x, y int, c color.Color) {
 	if !image.Pt(x, y).In(d.Bounds()) {
 		return
 	}
+	p := colorToRGB565(c)
+	if d.pix != nil {
+		d.pix[d.pixOffset(x, y)] = p
+	}
 	hwX, hwY := mapLogicalPoint(x, y)
-	d.device.SetPixel(hwX, hwY, colorToRGBA(c))
+	d.device.Set(int(hwX), int(hwY), p)
 }
 
 func (d *display) ColorModel() color.Model {
-	return color.RGBAModel
+	return RGB565Model
 }
 
 func (d *display) Fill(r image.Rectangle, c color.Color) {
@@ -74,8 +99,17 @@ func (d *display) Fill(r image.Rectangle, c color.Color) {
 	if r.Empty() {
 		return
 	}
+	p := colorToRGB565(c)
+	if d.pix != nil {
+		for y := r.Min.Y; y < r.Max.Y; y++ {
+			row := y * dispWidth
+			for x := r.Min.X; x < r.Max.X; x++ {
+				d.pix[row+x] = p
+			}
+		}
+	}
 	hw := mapLogicalRect(r)
-	d.device.FillRectangle(int16(hw.Min.X), int16(hw.Min.Y), int16(hw.Dx()), int16(hw.Dy()), colorToRGBA(c))
+	d.device.Fill(hw, p)
 }
 
 // Blit copies pixels from img into display, aligning img.Bounds().Min to 'at' within display.
@@ -88,15 +122,63 @@ func (d *display) Blit(img image.Image, at image.Point) {
 	}
 }
 
-// we can't implement this (can't read the display!), but need to fake it so we implement draw.Draw
-// we could buffer the Set() calls, but pretty sure we'll run out of RAM.
 func (d *display) At(x, y int) color.Color {
+	if d.pix != nil && image.Pt(x, y).In(d.Bounds()) {
+		return d.pix[d.pixOffset(x, y)]
+	}
 	return color.Alpha{0}
 }
 
 func (d *display) Scroll(amount int) {
-	// Hardware scroll moves in panel coordinates. The display wrapper exposes a
-	// transformed logical surface, so scrolling must be handled by the caller.
+	d.RegionScroll(d.Bounds(), amount)
+}
+
+func (d *display) RegionScroll(region image.Rectangle, amount int) {
+	if d.pix == nil {
+		return
+	}
+	region = region.Intersect(d.Bounds())
+	if region.Empty() || amount == 0 {
+		return
+	}
+	height := region.Dy()
+	if amount >= height || amount <= -height {
+		return
+	}
+
+	if amount > 0 {
+		for y := region.Min.Y; y < region.Max.Y-amount; y++ {
+			dst := d.pixOffset(region.Min.X, y)
+			src := d.pixOffset(region.Min.X, y+amount)
+			copy(d.pix[dst:dst+region.Dx()], d.pix[src:src+region.Dx()])
+		}
+	} else {
+		amount = -amount
+		for y := region.Max.Y - 1; y >= region.Min.Y+amount; y-- {
+			dst := d.pixOffset(region.Min.X, y)
+			src := d.pixOffset(region.Min.X, y-amount)
+			copy(d.pix[dst:dst+region.Dx()], d.pix[src:src+region.Dx()])
+		}
+	}
+	d.flush(region)
+}
+
+func (d *display) flush(r image.Rectangle) {
+	r = r.Intersect(d.Bounds())
+	if r.Empty() || d.pix == nil {
+		return
+	}
+	for y := r.Min.Y; y < r.Max.Y; y++ {
+		for x := r.Min.X; x < r.Max.X; x++ {
+			d.line[r.Dx()-1-(x-r.Min.X)] = d.pix[d.pixOffset(x, y)]
+		}
+		hw := mapLogicalRect(image.Rect(r.Min.X, y, r.Max.X, y+1))
+		d.device.Draw(hw, d.line[:r.Dx()])
+	}
+}
+
+func (*display) pixOffset(x, y int) int {
+	return y*dispWidth + x
 }
 
 func mapLogicalPoint(x, y int) (int16, int16) {
@@ -112,34 +194,35 @@ func mapLogicalRect(r image.Rectangle) image.Rectangle {
 	)
 }
 
-func colorToRGBA(c color.Color) color.RGBA {
-	if rgba, ok := c.(color.RGBA); ok {
-		return rgba
+func colorToRGB565(c color.Color) RGB565 {
+	if c, ok := c.(RGB565); ok {
+		return c
 	}
-	r, g, b, a := c.RGBA()
-	return color.RGBA{uint8(r / 0x101), uint8(g / 0x101), uint8(b / 0x101), uint8(a / 0x101)}
+	r, g, b, _ := c.RGBA()
+	return NewRGB565(uint8(r/0x101), uint8(g/0x101), uint8(b/0x101))
 }
 
-func imageToRGBASlice(img image.Image) []color.RGBA {
-	bounds := img.Bounds()
-	out := make([]color.RGBA, bounds.Dx()*bounds.Dy())
-	stride := bounds.Dx()
-	if rgbaImg, ok := img.(*image.RGBA); ok {
-		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-			for x := bounds.Min.X; x < bounds.Max.X; x++ {
-				dst := (y-bounds.Min.Y)*stride + (x - bounds.Min.X)
-				out[dst] = rgbaImg.RGBAAt(x, y)
-			}
-		}
-		return out
-	}
+func NewRGB565(r, g, b uint8) RGB565 {
+	return RGB565(uint16(r&0xf8)<<8 | uint16(g&0xfc)<<3 | uint16(b)>>3)
+}
 
-	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-		for x := bounds.Min.X; x < bounds.Max.X; x++ {
-			dst := (y-bounds.Min.Y)*stride + (x - bounds.Min.X)
-			out[dst] = colorToRGBA(img.At(x, y))
-		}
-	}
+func (c RGB565) Bytes() (hi, lo byte) {
+	return byte(c >> 8), byte(c)
+}
 
-	return out
+func (c RGB565) RGBA8() color.RGBA {
+	r := uint8((c >> 11) & 0x1f)
+	g := uint8((c >> 5) & 0x3f)
+	b := uint8(c & 0x1f)
+	return color.RGBA{
+		R: (r << 3) | (r >> 2),
+		G: (g << 2) | (g >> 4),
+		B: (b << 3) | (b >> 2),
+		A: 0xff,
+	}
+}
+
+func (c RGB565) RGBA() (r, g, b, a uint32) {
+	rgba := c.RGBA8()
+	return uint32(rgba.R) * 0x101, uint32(rgba.G) * 0x101, uint32(rgba.B) * 0x101, 0xffff
 }
