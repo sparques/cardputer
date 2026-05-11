@@ -9,8 +9,12 @@ import (
 )
 
 const (
-	dispWidth  = 240
-	dispHeight = 135
+	dispWidth      = 240
+	dispHeight     = 135
+	panelWidth     = 135
+	panelHeight    = 240
+	panelRowOffset = 40
+	panelColOffset = 52
 )
 
 // Display provides access to the built-in ST7789 LCD.
@@ -24,10 +28,6 @@ type display struct {
 }
 
 func (d *display) Init() {
-	// Configure SPI pins
-	LCDMOSI.Configure(machine.PinConfig{Mode: machine.PinSPI})
-	//LCDMISO.Configure(machine.PinConfig{Mode: machine.PinSPI})
-
 	// configure SPI
 	machine.SPI0.Configure(machine.SPIConfig{
 		SCK:       LCDSCK,
@@ -38,11 +38,11 @@ func (d *display) Init() {
 	d.device = st7789.New(machine.SPI0, LCDReset, LCDRS, LCDCS, LCDBacklight)
 
 	d.device.Configure(st7789.Config{
-		Width:  dispWidth,
-		Height: dispHeight,
-		//Rotation:
-		//RowOffset    int16
-		//ColumnOffset int16
+		Width:        panelWidth,
+		Height:       panelHeight,
+		Rotation:     st7789.ROTATION_270,
+		RowOffset:    panelRowOffset,
+		ColumnOffset: panelColOffset,
 		//FrameRate    FrameRate
 		//VSyncLines   int16
 	})
@@ -58,7 +58,11 @@ func (*display) Bounds() image.Rectangle {
 }
 
 func (d *display) Set(x, y int, c color.Color) {
-	d.device.SetPixel(int16(x), int16(y), colorToRGBA(c))
+	if !image.Pt(x, y).In(d.Bounds()) {
+		return
+	}
+	hwX, hwY := mapLogicalPoint(x, y)
+	d.device.SetPixel(hwX, hwY, colorToRGBA(c))
 }
 
 func (d *display) ColorModel() color.Model {
@@ -66,17 +70,22 @@ func (d *display) ColorModel() color.Model {
 }
 
 func (d *display) Fill(r image.Rectangle, c color.Color) {
-	d.device.FillRectangle(int16(r.Min.X), int16(r.Min.Y), int16(r.Dx()), int16(r.Dy()), colorToRGBA(c))
+	r = r.Intersect(d.Bounds())
+	if r.Empty() {
+		return
+	}
+	hw := mapLogicalRect(r)
+	d.device.FillRectangle(int16(hw.Min.X), int16(hw.Min.Y), int16(hw.Dx()), int16(hw.Dy()), colorToRGBA(c))
 }
 
 // Blit copies pixels from img into display, aligning img.Bounds().Min to 'at' within display.
 func (d *display) Blit(img image.Image, at image.Point) {
-	// must convert img to a slice of []color.RGBA first
-
-	d.device.FillRectangleWithBuffer(int16(at.X), int16(at.Y), int16(img.Bounds().Dx()), int16(img.Bounds().Dy()), imageToRGBASlice(img))
-
-	// would be better to make st7789.Device actually implement Blit and have it iterate over pixel data
-	// so we still get hte performance benefit of Blit operation, without the cost of memory
+	bounds := img.Bounds()
+	for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
+		for x := bounds.Min.X; x < bounds.Max.X; x++ {
+			d.Set(at.X+x-bounds.Min.X, at.Y+y-bounds.Min.Y, img.At(x, y))
+		}
+	}
 }
 
 // we can't implement this (can't read the display!), but need to fake it so we implement draw.Draw
@@ -86,12 +95,21 @@ func (d *display) At(x, y int) color.Color {
 }
 
 func (d *display) Scroll(amount int) {
-	d.scroll = (d.scroll + int16(amount)) % dispHeight
-	if d.scroll < 0 {
-		d.scroll += dispHeight
-	}
-	d.device.SetScroll(d.scroll)
-	// and then clear scrolled area? Leave that to fansiterm...
+	// Hardware scroll moves in panel coordinates. The display wrapper exposes a
+	// transformed logical surface, so scrolling must be handled by the caller.
+}
+
+func mapLogicalPoint(x, y int) (int16, int16) {
+	return int16(dispWidth - 1 - x), int16(dispHeight - 1 - y)
+}
+
+func mapLogicalRect(r image.Rectangle) image.Rectangle {
+	return image.Rect(
+		dispWidth-r.Max.X,
+		dispHeight-r.Max.Y,
+		dispWidth-r.Min.X,
+		dispHeight-r.Min.Y,
+	)
 }
 
 func colorToRGBA(c color.Color) color.RGBA {

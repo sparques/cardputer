@@ -1,4 +1,4 @@
-//go:build esp32 && !cardputer_adv
+//go:build (esp32 || esp32s3) && !cardputer_adv
 
 package cardputer
 
@@ -10,14 +10,6 @@ var sharedAudioTransport audioTransport = &esp32AudioTransport{}
 
 func openAudioTransport() (audioTransport, error) {
 	return sharedAudioTransport, nil
-}
-
-func configureSharedAudioTransport(cfg ES8311Config) error {
-	transport, err := openAudioTransport()
-	if err != nil {
-		return err
-	}
-	return transport.Configure(audioTransportConfigFromES8311(cfg))
 }
 
 func (t *esp32AudioTransport) Configure(cfg AudioTransportConfig) error {

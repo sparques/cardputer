@@ -19,7 +19,7 @@ CACHE_ENV = GOCACHE=$(CURDIR)/.cache/go-build GOMODCACHE=$(CURDIR)/.cache/go-mod
 .PHONY: build tinygo-version clean
 
 build:
-	env $(TINYGO_ENV) $(CACHE_ENV) tinygo build -target=esp32 $(if $(BOARD_TAGS),-tags=$(BOARD_TAGS)) ./...
+	env $(TINYGO_ENV) $(CACHE_ENV) tinygo test -target=esp32s3-generic $(if $(BOARD_TAGS),-tags=$(BOARD_TAGS)) ./...
 
 tinygo-version:
 	env $(TINYGO_ENV) tinygo version

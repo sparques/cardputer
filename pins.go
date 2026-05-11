@@ -1,4 +1,4 @@
-//go:build esp32
+//go:build esp32 || esp32s3
 
 package cardputer
 

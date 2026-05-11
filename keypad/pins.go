@@ -1,4 +1,4 @@
-//go:build !rp2040 && !esp32
+//go:build !(esp32 || esp32s3) && !cardputer_adv
 
 package keypad
 
