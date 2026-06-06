@@ -25,9 +25,10 @@ I intend to use my [IR package](https://github.com/sparques/irtrx) for sending I
 # Progress
 
  - ☑️ Pin definitions
- - ☑️ IR LED
+ - 🔄 IR LED (my IR package is taking more work than anticipated to port from RP2040 to ESP32)
  - ☑️ Keypad driver
- - 🔄 Screen (just a thin wrapper around the existing st7789 driver)
- - 🔄 SD Card (pins are initialized, but still working on filesystem support)
- - 🔄 Audio support
- - ☑️ Battery  Level
+ - ☑️  IU ( adv only )
+ - ☑️ Screen (just a thin wrapper around the existing st7789 driver)
+ - ☑️ SD Card ( tinyfs / FAT is working
+ - 🔄 Audio support - this is proving rather challenging
+ - 🔄 Battery Level - battery level is returned but I'm not sure I have the ADC scaled properly
