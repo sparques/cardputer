@@ -54,6 +54,8 @@ type Device struct {
 	EventReleaseCallback func(int64)
 	// stop is used to signal the goroutine handling scanning the keypad to return.
 	stop chan struct{}
+	// altBuf avoids allocating when prefixing translated keys with escape.
+	altBuf [8]byte
 }
 
 // New returns a new *Device. New configures the pins as needed.
@@ -73,9 +75,10 @@ func New() (d *Device) {
 func NewWithPins(addrLines [3]machine.Pin, senseLines [7]machine.Pin) *Device {
 	for i := range addrLines {
 		addrLines[i].Configure(machine.PinConfig{Mode: machine.PinOutput})
+		addrLines[i].Low()
 	}
 	for i := range senseLines {
-		senseLines[i].Configure(machine.PinConfig{Mode: machine.PinInputPulldown})
+		senseLines[i].Configure(machine.PinConfig{Mode: machine.PinInputPullup})
 	}
 	d := &Device{
 		addressLines: addrLines,
@@ -95,7 +98,7 @@ func (d *Device) Start() {
 
 	scanSenseLines := func() {
 		for i := range d.senseLines {
-			if d.senseLines[i].Get() {
+			if !d.senseLines[i].Get() {
 				d.buf |= 1 << i
 			}
 		}
@@ -181,7 +184,9 @@ func (d *Device) WriteByteCallback(int64) {
 		return
 	}
 	if (d.state & BtnAlt) == BtnAlt {
-		b = append([]byte{0x1b}, b...)
+		d.altBuf[0] = 0x1b
+		copy(d.altBuf[1:], b)
+		b = d.altBuf[:len(b)+1]
 	}
 	d.Receiver.Write(b)
 }
